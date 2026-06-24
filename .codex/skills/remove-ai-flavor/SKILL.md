@@ -1,201 +1,231 @@
 ---
 name: remove-ai-flavor
-description: Revise Chinese writing to remove AI-flavored, template-like expressions while preserving meaning, facts, author voice, and necessary roughness. Use when the user asks to 去除AI味, 降低AI感, 改得更像人写, 润色小红书/公众号/随笔/文案/评论/邮件/小说正文, or specifically remove patterns like “不是...而是”, “先...再”, “真正...的是”, “这次只看”, “X很简单：”, mechanical contrast/sequence framing, over-neat parallel rhythm, repeated route markers, and unexplained rhetorical questions at the end.
+description: Edit Chinese prose to remove AI-flavored, template-like writing while preserving facts, judgment, source boundaries, author voice, and necessary roughness. Use for 去除AI味、降低AI感、改得更像人写、润色小说/评论/长文/短帖/教程/复盘/报告，or when text shows mechanical contrast, uniform paragraph rhythm, inflated meaning, promotional tone, vague authority, generic conclusions, or excessive explanatory narration.
 ---
 
 # Remove AI Flavor
 
-## Goal
+## 0. Core Principle
 
-Make Chinese prose feel less machine-polished and more like a specific person wrote it. Preserve meaning, facts, stance, source boundaries, original register, and useful roughness. Remove only the structures that make readers feel the text is assembled from an assistant template.
+Do not “humanize” text by adding slang, sentiment, fabricated detail, or calculated imperfection. Edit toward truthful, specific writing with a visible point of view.
 
-Do not invent facts, examples, data, actions, jokes, personal experience, named sources, or emotional reactions merely to make text look human. Do not optimize for detector evasion. Optimize for truthful, specific writing.
+The goal is not to disguise AI. The goal is to retain real judgment, bodily sense, and stylistic boundaries.
 
-## Before Editing
+Preserve what is already alive: the author’s sentence length, opening habits, favorite words, rough edges, repetitions, and unevenness when they belong to the voice.
 
-Establish these five items. If information is missing, narrow the edit rather than inventing context:
+## 1. Before Editing: Establish the Boundary
 
-1. Genre: short post, long article, tutorial, review, commentary, formal report, fiction, or other.
-2. Author intent: explain, persuade, review, complain, record, or establish a judgment.
-3. Intended reader: what they already know and where the real difficulty is. Do not invent a low-information reader.
-4. Tone: calm judgment, field review, personal complaint, mild irony, restrained explanation, or another stated register.
-5. Source boundaries: what is direct experience or verified data, and what is inference, hearsay, or speculation.
+Before rewriting, identify these five items. If evidence is missing, narrow the revision; do not invent context.
 
-If the user provides writing samples, calibrate to their sentence length, opening habits, habitual wording, and degree of roughness. Do not replace them with a more “correct” generic style.
+1. **Genre** — short post, long article, tutorial, review, commentary, formal report, fiction, or other.
+2. **Intent** — explain, persuade, review, complain, record, or establish a judgment.
+3. **Reader** — what they already know and where the actual difficulty is. Do not invent a low-information reader just to correct them.
+4. **Tone** — calm judgment, field review, personal complaint, mild irony, restrained explanation, or another stated register.
+5. **Source boundary** — what is direct experience or verified data; what is inference, hearsay, or speculation.
 
-## Default Workflow
+If the user provides writing samples, calibrate to observable features only: sentence length, paragraph weight, opening habits, habitual expressions, degree of directness, and tolerance for roughness. Do not replace them with a generic “better style.”
 
-1. Produce a diagnosis before rewriting when the user asks for editing analysis. Classify: meaning inflation, promotional tone, vague attribution, formula sentences, AI vocabulary, rhythm/paragraph-shape traces.
-2. Mark sentences that are correct but carry little information.
-3. Delete before rewriting. Target at least 20% reduction when the draft contains clear padding; do not force this target on already lean text.
-4. Replace abstractions with a concrete action, number, scene, consequence, or one plain human sentence only when supported by the source.
-5. Check rhythm. If consecutive sentences have similar length or structure, create a deliberate shift: shorten, expand, cut, turn, or stop.
-6. Produce the first rewrite.
-7. Audit once more: “What still obviously sounds like AI?” Fix only the remaining structural problems.
+## 2. Default Editing Workflow
 
-If the text has no obvious AI flavor, do not over-edit. Excessive cleanup produces a different template.
+Use this sequence unless the user explicitly asks for only a quick rewrite.
 
-## High-Priority AI Traces
+1. **Diagnose before changing.** Classify problems under: meaning inflation, promotional tone, vague attribution, formula sentences, AI vocabulary, rhythm/paragraph shape, and voice mismatch.
+2. **Mark correct but empty sentences.** A sentence can be grammatically correct and still say nothing new.
+3. **Delete first.** Remove padding before adding language. Aim for at least 20% reduction only when the draft clearly contains padding; do not force a quota on lean writing.
+4. **Ground abstractions.** Replace an abstract word only with a supported action, number, scene, object, consequence, or one plain sentence.
+5. **Repair rhythm.** When several sentences or paragraphs have the same length, grammar, or emotional pitch, shorten one, extend one with a concrete fact, merge one, or stop early.
+6. **Produce a first revision.** Preserve claims, facts, and the author’s register.
+7. **Run a residual audit.** Ask: “What still obviously sounds like AI?” Fix only actual remaining structural problems. Do not over-clean.
 
-### Binary Contrast Shells
+If the original has no strong AI trace, say so and make fewer changes. Over-editing creates another template.
 
-High-risk forms:
+## 3. High-Priority AI Traces
 
-- “不是 A，而是 B”
-- “并非 A，而是 B”
-- “不在于 A，而在于 B”
-- “不只是 A，更是 B”
-- “与其说 A，不如说 B”
+### 3.1 Meaning Inflation
 
-Keep one only when A is a real reader belief, a character’s voice, or a necessary technical distinction. Otherwise delete the false target and state the actual claim.
+High-risk language:
 
-### Staged Sequence Shells
+- 真正重要的是 / 真正决定 X 的是 / 本质上 / 核心在于 / 底层逻辑
+- 赋能 / 认知升级 / 闭环 / 长期主义 / 关键抓手
+- 历史性 / 全面 / 深刻 / 巨大 / 时代意义, when unsupported
 
-High-risk forms:
+Rules:
 
-- “先 A，再 B”
-- “第一步……第二步……”
-- “从 A 到 B”
-- “下面我们来……”
-- “接下来我会……”
+- Name the actual subject directly.
+- Replace grand emphasis with evidence, action, condition, or consequence.
+- Do not make every paragraph reach a conclusion.
+- Do not scale a small event up to “the era / society / future” unless the material earns it.
 
-Keep sequence only when order changes the result. In instructions, use operational steps. In prose, enter the actual content directly.
-
-### Meaning Inflation And Empty Emphasis
-
-High-risk forms:
-
-- “真正重要的是”
-- “真正决定 X 的是”
-- “本质上”
-- “核心在于”
-- “底层逻辑”
-- “赋能”
-- “认知升级”
-- “闭环”
-- “长期主义”
-- “关键抓手”
-
-Replace abstract emphasis with evidence, action, condition, or consequence. Do not turn every paragraph into a conclusion.
-
-### Promotional Tone And Vague Authority
+### 3.2 Promotional Tone and Vague Authority
 
 Watch for:
 
-- “大幅提升”“全面赋能”“显著优化” without a measurement.
-- “业内人士认为”“不少人表示”“有研究显示” without a named source.
-- “广泛关注”“引发热议” without observable evidence.
-- Grand endings that extend the claim beyond the material.
+- 大幅提升 / 显著优化 / 全面赋能 without measurement.
+- 业内人士认为 / 不少人表示 / 有研究显示 without a named source.
+- 广泛关注 / 引发热议 without observable evidence.
+- Generic praise, guaranteed outcomes, or branded optimism.
 
-Delete unsupported intensity. Use names, data, scenes, or reduce the claim.
+Rules:
 
-### Formula Sentences And Paragraph Shape
+- Delete unsupported intensity.
+- Use a name, data point, scene, quotation, or reduce the claim.
+- Never invent a source, number, action, or experience.
 
-Watch for:
+### 3.3 Formula Sentences
 
-- “观点句 + 解释 + 段尾总结” repeated across paragraphs.
-- “概念：解释”“问题：答案”“原因：结论” repeated as a paragraph template.
-- Three or more clauses with the same grammar and emotional pitch.
-- Paragraphs with suspiciously even length and function.
-- Repeated rhetorical questions answered immediately by the author.
+High-risk shells:
 
-Break neatness by cutting a clause, grounding one clause in detail, letting a transition remain implicit, or ending on a fact, scene, consequence, or decision.
+- 不是 A，而是 B / 并非 A，而是 B / 不在于 A，而在于 B
+- 不只是 A，更是 B / 与其说 A，不如说 B
+- 先 A，再 B / 第一步、第二步 / 从 A 到 B
+- 这个问题很简单：/ 答案很简单：/ 这次只看……
+- 观点句 + 解释 + 段尾总结, repeated across paragraphs
 
-### Assistant Route Markers And Fake Engagement
+Rules:
+
+- Keep a contrast only when A is a real reader belief, a character’s voice, or a necessary technical distinction.
+- Keep sequence only when order changes the outcome.
+- Delete ceremonial setup and enter the actual content.
+- Do not build false opposition by first making the reader sound foolish.
+
+### 3.4 Assistant Markers and Fake Engagement
 
 Remove unless explicitly required:
 
-- “总的来说”
-- “值得注意的是”
-- “不可否认的是”
-- “在这个过程中”
-- “这背后其实”
-- “希望这能帮到你”
-- “划重点”
-- “拆一拆 / 捋一捋 / 盘一盘 / 聊一聊”
-- “你觉得呢？”
-- “你有没有类似经历？”
+- 总的来说 / 值得注意的是 / 不可否认的是 / 在这个过程中 / 这背后其实
+- 下面我们来 / 接下来我会 / 我们可以看到 / 希望这能帮到你
+- 划重点 / 拆一拆 / 捋一捋 / 盘一盘 / 聊一聊
+- 你觉得呢？/ 你有没有类似经历？/ 是不是很有启发？
 
-Do not fabricate a foolish reader statement just to correct it. Address only real, central objections.
+A question stays only when the user truly needs a CTA, poll, survey, or response prompt.
 
-## Register-Specific Rules
+### 3.5 Uniform Paragraph Shape
 
-### Fiction
+Watch for:
 
-- Preserve scene continuity, character action, dialogue intention, and manuscript-only output unless diagnosis is requested.
-- Prefer action, sensory detail, and consequence over explanatory verdicts such as “他意识到”“真正”“不禁”.
-- Do not over-explain worldbuilding at the moment of emotional payoff.
-- Keep dialogue roughness, repetition, simple words, and even a necessary formula shell when it reveals character.
-- Do not force a moral conclusion. Let the image, object, decision, or unanswered residue carry the ending.
+- Paragraphs that are nearly equal in length and function.
+- Repeated “claim → explanation → summary” architecture.
+- Three or more parallel clauses with identical grammar and emotional pitch.
+- One paragraph per sentence, pause, screen prompt, or glance.
 
-#### Fiction Rhythm Benchmark
+Rules:
 
-Use this default pattern when it fits the manuscript:
+- Let paragraph lengths vary.
+- Merge related movement, thought, speech, and memory.
+- A short paragraph must mark a real turn: new information, interruption, changed decision, or a concrete image worth isolating.
+- End paragraphs on a fact, object, scene, consequence, or unresolved decision rather than a slogan.
 
-- Open a scene with the object, question, action, or line of dialogue that causes the friction. Do not preface it with background explanation.
-- Let dialogue do the argument in short turns. Attribute speech only when needed for clarity or a meaningful gesture.
-- After the dialogue, use one compact paragraph to place the character’s past or habitual action. Prefer a specific repeated act: a red pen, a routine, an object, a sentence the character often says.
-- Join related movement, speech, and memory into one paragraph. Do not create a new paragraph for every line, pause, screen prompt, or glance.
-- A short paragraph should mark a true turn: a new piece of information, a changed decision, an interruption, or an image worth isolating. It must not merely manufacture drama.
-- Do not explain the emotion after the dialogue already reveals it. “王守没有再说话” can carry more than a paragraph explaining why he was angry.
-- Prefer plain verbs: 看、扫、搁、说、写、等、走、停。Do not replace them with ornamental synonyms.
-- Let a physical detail arrive late and briefly. One hard head of hair, one red pen, one old desk can carry the feeling; do not immediately interpret the symbol.
+## 4. Register-Specific Rules
 
-Benchmark shape:
+### 4.1 Fiction
 
-> “0.1+0.2=？”
->
-> 王逗看到验证题，输入：“0.30000000000000004。”
->
-> “验证通过。”
->
-> 父亲王守从厨房出来，扫了一眼，说：“不对。”
->
-> ……
->
-> 王守没有再说话。他教过一辈子小学数学。过去批作业，谁把“0.1+0.2=0.3”写得端正，他就用红笔在旁边画一朵小红花。
+#### Main Rule
 
-What makes this work: dialogue stays literal; narration does not translate the feeling; one ordinary object connects the present conflict to the older relationship.
+Do not explain what dialogue, action, and objects already show.
 
-### Commentary And Public Writing
+#### Scene Pattern: Dialogue → Old Detail → Stop
 
-- Keep the author’s judgment. Do not pretend every counterargument deserves equal weight.
-- Replace abstractions with observable stakes.
-- Do not end by escalating to “the era / society / future” unless the material earns it.
+For relationship scenes, arguments, misunderstandings, reunions, and quiet emotional turns:
 
-### Formal Reports And Technical Writing
+1. Start with the immediate object, question, action, or line that causes friction. Do not begin with background explanation.
+2. Let dialogue carry the argument in short, literal turns.
+3. Do not polish dialogue into a debate. People repeat, dodge, answer half a question, change the subject, and say things a little clumsily.
+4. After the exchange, place one compact paragraph of past habit or an ordinary old detail: a red pen, a rice bowl, an old bed, a routine, one line someone always says.
+5. Let that object connect past and present. Do not explain its symbolism.
+6. Stop before the author translates the emotion into a lesson.
 
-- Preserve terms, citations, variables, and qualified claims.
-- Do not swap precise terms for colloquial words.
-- If evidence is missing, narrow or hedge the claim; never invent a citation.
-- Keep lists and sequence markers where they are required for compliance or operation.
+#### Paragraphing
 
-### Social Posts
+- Long paragraphs carry situation, movement, work, memory, and related action.
+- Short paragraphs mark a true turn, interruption, or an image that needs air.
+- Do not split every spoken line or pause into separate paragraphs.
+- Do not aim for mechanically alternating long and short paragraphs. Let the scene determine the breath.
+
+#### Dialogue
+
+- Keep roughness, repetition, simple words, and slight mismatch when they reveal character.
+- Speech tags are needed only for clarity or a meaningful gesture.
+- Avoid replacing plain dialogue with clever, symmetrical, or aphoristic lines.
+- Keep a formula shell in dialogue only when it belongs to the speaker.
+
+#### Narration
+
+- Prefer ordinary verbs: 看、扫、搁、说、写、走、停、等、抬、拿、放。
+- Avoid decorative filler: 微微、缓缓、不禁、蓦地、猛然、若有所思、心中暗道, unless indispensable.
+- Prefer action, sensory detail, and consequence over “他意识到”“她终于明白”“他感到愤怒”。
+- Give worldbuilding only as much space as the immediate scene needs. Do not pause an emotional turn to explain the system.
+- Let one physical detail arrive late and briefly. Do not interpret it immediately.
+
+#### Endings
+
+- Do not force a moral, a twist explanation, or a theme sentence.
+- Do not end with “原来这说明了……”“不是考谁对，而是……”.
+- End on an object, unfinished exchange, action, or residue when possible.
+
+### 4.2 Commentary and Public Writing
+
+- Keep the author’s judgment; do not pretend every objection deserves equal weight.
+- Address only the real, central counterargument.
+- Replace abstractions with observable stakes, people, scenes, documents, or consequences.
+- Do not manufacture a grand historical ending.
+
+### 4.3 Formal Reports and Technical Writing
+
+- Preserve terms, citations, variables, compliance language, and qualified claims.
+- Do not replace precision with colloquialism.
+- If proof is missing, narrow or hedge the claim. Never invent a citation.
+- Keep lists and sequences when operation, audit, or compliance requires them.
+
+### 4.4 Social Posts and Short Public Writing
 
 - Keep information density and readability.
-- Do not add fake intimacy, exaggerated uplift, or comment bait.
-- A hook is not mandatory. Start from the thing that actually needs saying.
+- A hook is not mandatory; begin with the thing that needs saying.
+- Avoid fake intimacy, exaggerated uplift, generic “save this” language, and comment bait.
+- Use direct experience or concrete utility, not vague promises.
 
-## Quality Gate
+## 5. Output Modes
 
-Before finalizing, verify:
+### Revision Only
 
-- The revision preserves the author’s claim, factual boundary, and voice.
-- No unsupported number, scene, action, or source was added.
-- Binary contrast, staged sequence, and “essence” language remain only where they are justified.
+Output the revised text with at most a brief note.
+
+### Diagnosis + Revision
+
+Use this order:
+
+1. Diagnosis by category.
+2. Correct-but-empty sentences.
+3. What to delete and why.
+4. First revision.
+5. Residual-AI audit.
+6. Final revision.
+
+### Voice Calibration
+
+State only observable style features. Do not claim certainty about private intent, personality, or life experience.
+
+## 6. Final Quality Gate
+
+Before finalizing, check all of the following:
+
+- Meaning, facts, source boundaries, and author stance remain intact.
+- No fact, quotation, number, named person, action, or personal experience was invented.
+- The revision does not sound smoother, safer, or more generic than the original.
+- Binary contrast, staged sequence, and grand conclusions remain only when justified.
 - Sentence length and paragraph weight vary naturally.
-- The text does not solve every objection or conclude every paragraph with a slogan.
-- The ending does not become a moral or an engagement prompt by habit.
-- The revision has not become smoother, safer, and less individual than the original.
-- In fiction, paragraph breaks correspond to scene turns rather than every spoken line.
-- In fiction, the strongest emotional fact is carried by dialogue, an object, or an action—not a line explaining what the reader should feel.
+- The text does not answer every objection or end every paragraph with a summary.
+- No assistant route marker or fake engagement question remains unless requested.
+- For fiction: emotion is carried by dialogue, action, object, or consequence—not author explanation.
+- For fiction: paragraph breaks follow scene turns, not every line of speech.
+- For fiction: the ending does not explain the story’s moral after the story has already shown it.
 
-## Output Modes
+## 7. Quick Invocation Examples
 
-- If asked only to revise: output the revised text, with minimal note.
-- If asked to analyze: provide diagnosis, empty-information sentences, first rewrite, residual-AI audit, and final rewrite.
-- If asked to preserve a specific author voice: identify only observable style features; do not claim certainty about hidden intent.
+- “用 remove-ai-flavor skill 检测这篇稿子的 AI 痕迹，先不要改。”
+- “用 remove-ai-flavor skill 改这篇评论。先删能删的，再保留作者判断。”
+- “用 remove-ai-flavor skill 改这篇小说：少分段，不解释人物情绪，对话后只用一件旧物或旧事接住关系。”
+- “按作者样本校准这篇文章：保留句长和口头禅，不要升级成标准媒体腔。”
 
 ## Provenance
 
-Installed from and adapted from B1lli/remove-ai-flavor-writing-skill (MIT). Local additions emphasize source boundaries, editorial diagnosis, deletion-first revision, author-voice calibration, and a second residual-AI audit.
+Adapted from B1lli/remove-ai-flavor-writing-skill (MIT), then expanded for Chinese editorial work: source boundaries, deletion-first revision, author-voice calibration, fiction paragraph rhythm, unpolished dialogue, and residual-AI audit.
