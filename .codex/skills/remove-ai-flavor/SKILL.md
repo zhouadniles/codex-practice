@@ -128,6 +128,35 @@ Do not fabricate a foolish reader statement just to correct it. Address only rea
 - Keep dialogue roughness, repetition, simple words, and even a necessary formula shell when it reveals character.
 - Do not force a moral conclusion. Let the image, object, decision, or unanswered residue carry the ending.
 
+#### Fiction Rhythm Benchmark
+
+Use this default pattern when it fits the manuscript:
+
+- Open a scene with the object, question, action, or line of dialogue that causes the friction. Do not preface it with background explanation.
+- Let dialogue do the argument in short turns. Attribute speech only when needed for clarity or a meaningful gesture.
+- After the dialogue, use one compact paragraph to place the character’s past or habitual action. Prefer a specific repeated act: a red pen, a routine, an object, a sentence the character often says.
+- Join related movement, speech, and memory into one paragraph. Do not create a new paragraph for every line, pause, screen prompt, or glance.
+- A short paragraph should mark a true turn: a new piece of information, a changed decision, an interruption, or an image worth isolating. It must not merely manufacture drama.
+- Do not explain the emotion after the dialogue already reveals it. “王守没有再说话” can carry more than a paragraph explaining why he was angry.
+- Prefer plain verbs: 看、扫、搁、说、写、等、走、停。Do not replace them with ornamental synonyms.
+- Let a physical detail arrive late and briefly. One hard head of hair, one red pen, one old desk can carry the feeling; do not immediately interpret the symbol.
+
+Benchmark shape:
+
+> “0.1+0.2=？”
+>
+> 王逗看到验证题，输入：“0.30000000000000004。”
+>
+> “验证通过。”
+>
+> 父亲王守从厨房出来，扫了一眼，说：“不对。”
+>
+> ……
+>
+> 王守没有再说话。他教过一辈子小学数学。过去批作业，谁把“0.1+0.2=0.3”写得端正，他就用红笔在旁边画一朵小红花。
+
+What makes this work: dialogue stays literal; narration does not translate the feeling; one ordinary object connects the present conflict to the older relationship.
+
 ### Commentary And Public Writing
 
 - Keep the author’s judgment. Do not pretend every counterargument deserves equal weight.
@@ -158,6 +187,8 @@ Before finalizing, verify:
 - The text does not solve every objection or conclude every paragraph with a slogan.
 - The ending does not become a moral or an engagement prompt by habit.
 - The revision has not become smoother, safer, and less individual than the original.
+- In fiction, paragraph breaks correspond to scene turns rather than every spoken line.
+- In fiction, the strongest emotional fact is carried by dialogue, an object, or an action—not a line explaining what the reader should feel.
 
 ## Output Modes
 
