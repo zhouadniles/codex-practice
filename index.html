@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>文学稿件精修助手（本地版）</title>
+  <style>
+    :root { color-scheme: light; }
+    body {
+      margin: 0;
+      font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: #f5f7fb;
+      color: #1f2937;
+    }
+    .container { max-width: 1100px; margin: 24px auto; padding: 0 16px 32px; }
+    h1 { margin: 0 0 8px; font-size: 28px; }
+    .subtitle { margin: 0 0 16px; color: #4b5563; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .card {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(17, 24, 39, 0.04);
+      padding: 14px;
+    }
+    label { font-weight: 600; display: block; margin-bottom: 8px; }
+    textarea {
+      width: 100%; min-height: 280px; resize: vertical;
+      border: 1px solid #d1d5db; border-radius: 10px; padding: 10px;
+      line-height: 1.7; font-size: 15px; box-sizing: border-box;
+    }
+    .btns { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+    button {
+      border: 0; border-radius: 10px; padding: 10px 14px;
+      background: #2563eb; color: #fff; font-weight: 600; cursor: pointer;
+    }
+    button.secondary { background: #6b7280; }
+    button.ghost { background: #fff; color: #111827; border: 1px solid #d1d5db; }
+    .muted { color: #6b7280; font-size: 13px; }
+    .result-group { margin-bottom: 12px; }
+    .result-group h3 { margin: 12px 0 8px; font-size: 16px; }
+    .issue {
+      padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px;
+      margin-bottom: 8px; background: #fcfcff;
+    }
+    .issue .type { font-size: 12px; color: #374151; background: #eef2ff; border-radius: 999px; padding: 2px 8px; display: inline-block; margin-bottom: 6px; }
+    .issue code { background: #f3f4f6; border-radius: 6px; padding: 2px 6px; }
+    .minimal-output {
+      border: 1px dashed #93c5fd; background: #eff6ff; padding: 10px; border-radius: 8px;
+      white-space: pre-wrap; line-height: 1.75;
+    }
+    .footer-note { margin-top: 10px; font-size: 12px; color: #6b7280; }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>文学稿件精修助手（本地网页工具）</h1>
+    <p class="subtitle">目标：<strong>不改变作者原意</strong>、<strong>尽量保留作者风格</strong>，并为每一条修改给出理由。</p>
+
+    <div class="grid">
+      <section class="card">
+        <label for="inputText">输入文学稿件</label>
+        <textarea id="inputText" placeholder="将稿件粘贴到这里...\n\n提示：该工具是本地规则辅助，不会联网。"></textarea>
+        <div class="btns">
+          <button id="analyzeBtn">开始检查</button>
+          <button id="sampleBtn" class="ghost">填充示例</button>
+          <button id="clearBtn" class="secondary">清空</button>
+          <button id="copyBtn" class="ghost">复制最小修改版</button>
+        </div>
+        <p class="footer-note">说明：这是“编辑第一轮筛查”工具，建议最终仍由资深编辑复核语义和语感。</p>
+      </section>
+
+      <section class="card">
+        <label>输出结果</label>
+        <div id="summary" class="muted">尚未分析。</div>
+        <div id="results"></div>
+
+        <h3>最小修改版</h3>
+        <div id="minimalText" class="minimal-output">（暂无）</div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const inputEl = document.getElementById('inputText');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const sampleBtn = document.getElementById('sampleBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const copyBtn = document.getElementById('copyBtn');
+    const summaryEl = document.getElementById('summary');
+    const resultsEl = document.getElementById('results');
+    const minimalEl = document.getElementById('minimalText');
+
+    const typoMap = [
+      { wrong: '的地得', right: '的/地/得', reason: '“的地得”混用，需按语法功能区分。' },
+      { wrong: '再接再励', right: '再接再厉', reason: '常见错别字。' },
+      { wrong: '渡过难关', right: '度过难关', reason: '“度过（时间/阶段）”更贴切。' },
+      { wrong: '一愁莫展', right: '一筹莫展', reason: '固定成语写法。' },
+      { wrong: '迫不急待', right: '迫不及待', reason: '固定成语写法。' },
+      { wrong: '即然', right: '既然', reason: '连词“既然”固定写法。' },
+      { wrong: '做以', right: '作以', reason: '书面搭配中多作“以…为…/作以…（少见）”，请结合上下文确认。' },
+      { wrong: '漫漫长夜以经过去', right: '漫漫长夜已经过去', reason: '“以经”误写为“已经”。' }
+    ];
+
+    const collocationRules = [
+      { pattern: /提高(\s*)效率/g, suggestion: '提升效率', reason: '“提高/提升”均可，但“提升效率”在现代书面语中更常见，视风格取舍。' },
+      { pattern: /非常(\s*)十分/g, suggestion: '非常/十分（二选一）', reason: '程度副词叠加，语义重复。' },
+      { pattern: /有点(\s*)非常/g, suggestion: '有点/非常（二选一）', reason: '语气方向冲突（弱化 vs 强化）。' },
+      { pattern: /进行(\s*)研究工作/g, suggestion: '进行研究', reason: '“研究工作”冗余，可压缩而不改意。' }
+    ];
+
+    const sentenceRules = [
+      { pattern: /因为([^。！？；\n]{0,50})所以([^。！？；\n]{0,50})但是/g, suggestion: '因为…所以…；但…', reason: '关联词链条冲突，建议拆句或改连词。' },
+      { pattern: /虽然([^。！？；\n]{0,50})但是/g, suggestion: '虽然…但是…（检查是否完整）', reason: '需检查主从句是否完整、逻辑是否顺承。' },
+      { pattern: /他她|她他/g, suggestion: '统一人称代词', reason: '叙事主体切换可能造成指代混乱。' },
+      { pattern: /。{2,}|！{2,}|？{2,}/g, suggestion: '合并重复终止符', reason: '终止符重复可能影响文学语气稳定性（特殊修辞除外）。' }
+    ];
+
+    const punctRules = [
+      { pattern: /,,|，，/g, suggestion: '，', reason: '重复逗号。' },
+      { pattern: /。。/g, suggestion: '。', reason: '重复句号。' },
+      { pattern: /“[^”\n]*"|"[^"\n]*”/g, suggestion: '统一引号样式', reason: '中英文引号混用。' },
+      { pattern: /\([^)\n]*）|（[^）\n]*\)/g, suggestion: '统一括号样式', reason: '中英文括号混用。' }
+    ];
+
+    function splitSentences(text) {
+      return text
+        .split(/(?<=[。！？；\n])/)
+        .map(s => s.trim())
+        .filter(Boolean);
+    }
+
+    function findAllByPattern(text, pattern) {
+      const arr = [];
+      let m;
+      pattern.lastIndex = 0;
+      while ((m = pattern.exec(text)) !== null) {
+        arr.push({ match: m[0], index: m.index });
+      }
+      return arr;
+    }
+
+    function analyzeText(text) {
+      const issues = [];
+      let revised = text;
+
+      typoMap.forEach(rule => {
+        let pos = revised.indexOf(rule.wrong);
+        while (pos !== -1) {
+          issues.push({ type: '错别字检查', original: rule.wrong, suggestion: rule.right, reason: rule.reason, index: pos });
+          revised = revised.slice(0, pos) + rule.right + revised.slice(pos + rule.wrong.length);
+          pos = revised.indexOf(rule.wrong, pos + rule.right.length);
+        }
+      });
+
+      sentenceRules.forEach(rule => {
+        const hits = findAllByPattern(revised, rule.pattern);
+        hits.forEach(h => {
+          issues.push({ type: '病句检查', original: h.match, suggestion: rule.suggestion, reason: rule.reason, index: h.index });
+        });
+      });
+
+      collocationRules.forEach(rule => {
+        const hits = findAllByPattern(revised, rule.pattern);
+        hits.forEach(h => {
+          issues.push({ type: '词语搭配问题', original: h.match, suggestion: rule.suggestion, reason: rule.reason, index: h.index });
+        });
+      });
+
+      punctRules.forEach(rule => {
+        const hits = findAllByPattern(revised, rule.pattern);
+        hits.forEach(h => {
+          issues.push({ type: '标点问题', original: h.match, suggestion: rule.suggestion, reason: rule.reason, index: h.index });
+          if (['，', '。'].includes(rule.suggestion)) {
+            revised = revised.replace(h.match, rule.suggestion);
+          }
+        });
+      });
+
+      const sentences = splitSentences(revised);
+      sentences.forEach((s, i) => {
+        if (s.length > 80 && !/[，；：]/.test(s)) {
+          issues.push({
+            type: '病句检查',
+            original: `第${i + 1}句`,
+            suggestion: '考虑在语义停顿处断句',
+            reason: '句子过长且缺少停顿标记，阅读负担较重；建议最小断句，不改叙事意图。',
+            index: 0
+          });
+        }
+      });
+
+      issues.sort((a, b) => a.index - b.index);
+      return { issues, revised };
+    }
+
+    function render(issues, revised) {
+      const byType = {
+        '错别字检查': [],
+        '病句检查': [],
+        '词语搭配问题': [],
+        '标点问题': []
+      };
+      issues.forEach(it => byType[it.type]?.push(it));
+
+      const total = issues.length;
+      summaryEl.textContent = total
+        ? `共发现 ${total} 处可疑问题。请按“修改理由”人工复核，以确保不改变原意与风格。`
+        : '未发现明显问题（基于内置规则）。建议仍进行人工复核。';
+
+      const html = Object.entries(byType).map(([k, list]) => {
+        return `
+          <div class="result-group">
+            <h3>${k}（${list.length}）</h3>
+            ${list.length ? list.map(item => `
+              <div class="issue">
+                <div class="type">${item.type}</div>
+                <div>原文片段：<code>${escapeHtml(item.original)}</code></div>
+                <div>建议修改：<code>${escapeHtml(item.suggestion)}</code></div>
+                <div>修改理由：${escapeHtml(item.reason)}</div>
+              </div>
+            `).join('') : '<div class="muted">暂无</div>'}
+          </div>
+        `;
+      }).join('');
+
+      resultsEl.innerHTML = html;
+      minimalEl.textContent = revised || '（暂无）';
+    }
+
+    function escapeHtml(s) {
+      return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    analyzeBtn.addEventListener('click', () => {
+      const text = inputEl.value.trim();
+      if (!text) {
+        summaryEl.textContent = '请先输入稿件内容。';
+        resultsEl.innerHTML = '';
+        minimalEl.textContent = '（暂无）';
+        return;
+      }
+      const { issues, revised } = analyzeText(text);
+      render(issues, revised);
+    });
+
+    sampleBtn.addEventListener('click', () => {
+      inputEl.value = '即然夜色以经很深了，，他还是迫不急待地继续写下去。。\n因为他想证明自己所以但是笔下的人物却开始彼此误认他她。\n她说：“你真的非常十分勇敢”。';
+    });
+
+    clearBtn.addEventListener('click', () => {
+      inputEl.value = '';
+      summaryEl.textContent = '尚未分析。';
+      resultsEl.innerHTML = '';
+      minimalEl.textContent = '（暂无）';
+    });
+
+    copyBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(minimalEl.textContent);
+        copyBtn.textContent = '已复制';
+        setTimeout(() => (copyBtn.textContent = '复制最小修改版'), 1200);
+      } catch {
+        copyBtn.textContent = '复制失败';
+        setTimeout(() => (copyBtn.textContent = '复制最小修改版'), 1200);
+      }
+    });
+  </script>
+</body>
+</html>
