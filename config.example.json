@@ -1,0 +1,17 @@
+{
+  "max_items": 20,
+  "rss": [
+    {
+      "name": "Hacker News",
+      "url": "https://hnrss.org/frontpage",
+      "enabled": true,
+      "limit": 15
+    },
+    {
+      "name": "OpenAI Blog",
+      "url": "https://openai.com/news/rss.xml",
+      "enabled": true,
+      "limit": 10
+    }
+  ]
+}
