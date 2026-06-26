@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>文学编辑最小修改助手（本地单文件）</title>
+  <style>
+    body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:#f6f8fc;color:#1f2937;margin:0}
+    .wrap{max-width:1200px;margin:20px auto;padding:0 16px}
+    h1{font-size:28px;margin:0 0 8px}
+    .tip{color:#4b5563;margin-bottom:14px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px}
+    textarea{width:100%;min-height:330px;border:1px solid #d1d5db;border-radius:10px;padding:10px;line-height:1.8;resize:vertical;box-sizing:border-box}
+    .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    button{border:1px solid #d1d5db;background:#fff;padding:8px 12px;border-radius:9px;cursor:pointer}
+    button.primary{background:#2563eb;color:#fff;border-color:#2563eb}
+    .summary{font-size:14px;color:#334155;margin-bottom:8px}
+    .badge{display:inline-block;font-size:12px;border-radius:999px;padding:2px 8px;background:#eef2ff;color:#3730a3;margin-right:6px}
+    .issue{border:1px solid #e5e7eb;border-radius:8px;padding:10px;margin-bottom:8px}
+    .issue code{background:#f3f4f6;padding:1px 6px;border-radius:6px}
+    .minimal{white-space:pre-wrap;border:1px dashed #93c5fd;background:#eff6ff;border-radius:8px;padding:10px;line-height:1.8;min-height:180px}
+    .small{font-size:12px;color:#6b7280}
+    .empty{color:#6b7280}
+    @media (max-width:980px){.grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>文学编辑最小修改助手</h1>
+  <div class="tip">用于首轮筛查：<b>尽量保留作者风格</b>、<b>不改变原意</b>，每条建议附修改理由。</div>
+  <div class="grid">
+    <section class="card">
+      <label for="src"><b>输入文学稿件</b></label>
+      <textarea id="src" placeholder="粘贴正文（本工具本地运行，不联网）"></textarea>
+      <div class="row">
+        <button class="primary" id="run">开始检查</button>
+        <button id="sample">示例</button>
+        <button id="clear">清空</button>
+        <button id="copy">复制最小修改版</button>
+      </div>
+      <p class="small">说明：本工具是规则+启发式辅助，不替代终审。</p>
+    </section>
+
+    <section class="card">
+      <div id="summary" class="summary">尚未分析。</div>
+      <div id="issues"></div>
+      <h3>最小修改版</h3>
+      <div id="minimal" class="minimal">（暂无）</div>
+    </section>
+  </div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const src = $("src"), issuesEl = $("issues"), summaryEl = $("summary"), minimalEl = $("minimal");
+
+const typoRules = [
+  ["再接再励","再接再厉","成语固定写法。"],
+  ["一愁莫展","一筹莫展","成语固定写法。"],
+  ["迫不急待","迫不及待","成语固定写法。"],
+  ["即然","既然","连词固定写法。"],
+  ["以经","已经","常见形近误写。"],
+  ["渡过","度过","用于时间/阶段通常用“度过”。"]
+];
+
+const regexRules = [
+  {type:"病句检查", re:/因为([^。！？；\n]{0,50})所以([^。！？；\n]{0,50})但是/g, fix:"建议拆分为“因为…所以…；但…”", why:"关联词链冲突，逻辑转折与因果并置。", auto:false},
+  {type:"病句检查", re:/虽然([^。！？；\n]{0,60})但是([^。！？；\n]{0,60})却/g, fix:"保留“虽然…但是…”或“虽然…却…”其一", why:"同层转折标记叠加，表达偏重。", auto:false},
+  {type:"词语搭配问题", re:/非常\s*十分/g, fix:"“非常/十分”二选一", why:"程度副词重复，语义冗余。", auto:false},
+  {type:"词语搭配问题", re:/有点\s*非常/g, fix:"“有点/非常”二选一", why:"弱化与强化副词并置，语气冲突。", auto:false},
+  {type:"词语搭配问题", re:/进行\s*研究工作/g, fix:"进行研究", why:"语义重复，可做最小压缩。", auto:false},
+  {type:"标点问题", re:/，，|,,/g, fix:"，", why:"重复逗号。", auto:true},
+  {type:"标点问题", re:/。。/g, fix:"。", why:"重复句号。", auto:true},
+  {type:"标点问题", re:/！！+/g, fix:"！", why:"连续叹号（特殊修辞除外）。", auto:true},
+  {type:"标点问题", re:/？？+/g, fix:"？", why:"连续问号（特殊修辞除外）。", auto:true},
+  {type:"标点问题", re:/“[^”\n]*"|"[^"\n]*”/g, fix:"统一为中文引号“”", why:"中英文引号混用。", auto:false},
+  {type:"标点问题", re:/\([^)\n]*）|（[^）\n]*\)/g, fix:"统一括号样式（全角或半角）", why:"括号样式混用。", auto:false}
+];
+
+function escapeHtml(s){return String(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"','&quot;').replaceAll("'","&#39;");}
+
+function idxToLineCol(text, idx){
+  const prev = text.slice(0, idx);
+  const line = prev.split("\n").length;
+  const col = prev.length - prev.lastIndexOf("\n");
+  return {line, col};
+}
+
+function collect(text){
+  const issues=[];
+  let revised=text;
+
+  for(const [wrong,right,why] of typoRules){
+    let start=0;
+    while(true){
+      const i = revised.indexOf(wrong,start);
+      if(i===-1) break;
+      issues.push({type:"错别字检查", hit:wrong, fix:right, why, i, auto:true});
+      revised = revised.slice(0,i)+right+revised.slice(i+wrong.length);
+      start = i + right.length;
+    }
+  }
+
+  for(const rule of regexRules){
+    rule.re.lastIndex=0;
+    let m;
+    while((m=rule.re.exec(revised))!==null){
+      const hit = m[0];
+      const i = m.index;
+      issues.push({type:rule.type, hit, fix:rule.fix, why:rule.why, i, auto:rule.auto});
+      if(rule.auto){
+        revised = revised.slice(0,i) + rule.fix + revised.slice(i+hit.length);
+        rule.re.lastIndex = i + rule.fix.length;
+      }
+    }
+  }
+
+  const sentences = revised.split(/(?<=[。！？；\n])/).map(v=>v.trim()).filter(Boolean);
+  let cursor=0;
+  sentences.forEach((s,idx)=>{
+    const pos = revised.indexOf(s,cursor);
+    cursor = Math.max(cursor,pos+s.length);
+    if(s.length>90 && !/[，；：]/.test(s)){
+      issues.push({type:"病句检查",hit:`第${idx+1}句`,fix:"考虑在语义停顿处断句",why:"句子较长且缺少停顿，建议最小断句以提升可读性。",i:pos,auto:false});
+    }
+  });
+
+  issues.sort((a,b)=>a.i-b.i);
+  return {issues,revised};
+}
+
+function render(result, original){
+  const groups = ["错别字检查","病句检查","词语搭配问题","标点问题"];
+  const map = Object.fromEntries(groups.map(g=>[g,[]]));
+  result.issues.forEach(it=>map[it.type].push(it));
+
+  summaryEl.textContent = result.issues.length
+    ? `共发现 ${result.issues.length} 处可疑点（自动最小替换 ${result.issues.filter(x=>x.auto).length} 处）。请按理由逐条复核。`
+    : "未发现明显问题（基于内置规则），建议人工终审。";
+
+  issuesEl.innerHTML = groups.map(g=>{
+    const list = map[g];
+    if(!list.length) return `<h3>${g}（0）</h3><div class='empty'>暂无</div>`;
+    return `<h3>${g}（${list.length}）</h3>` + list.map(it=>{
+      const lc = idxToLineCol(original, Math.max(0,it.i));
+      return `<div class='issue'>
+        <span class='badge'>${it.type}</span><span class='small'>位置：第 ${lc.line} 行，第 ${lc.col} 列</span>
+        <div>原文片段：<code>${escapeHtml(it.hit)}</code></div>
+        <div>建议修改：<code>${escapeHtml(it.fix)}</code>${it.auto?" <span class='small'>(已计入最小修改版)</span>":""}</div>
+        <div>修改理由：${escapeHtml(it.why)}</div>
+      </div>`;
+    }).join("");
+  }).join("");
+
+  minimalEl.textContent = result.revised || "（暂无）";
+}
+
+$("run").onclick = () => {
+  const t = src.value.trim();
+  if(!t){summaryEl.textContent="请先输入稿件。";issuesEl.innerHTML="";minimalEl.textContent="（暂无）";return;}
+  render(collect(t), t);
+};
+
+$("sample").onclick = () => {
+  src.value = "即然雨下了一整夜，，她还是迫不急待地出门。。\n因为她想找到答案所以但是脚步又慢下来。\n“你真的非常十分勇敢"，他轻声说。";
+};
+
+$("clear").onclick = () => { src.value=""; issuesEl.innerHTML=""; summaryEl.textContent="尚未分析。"; minimalEl.textContent="（暂无）"; };
+
+$("copy").onclick = async () => {
+  try{ await navigator.clipboard.writeText(minimalEl.textContent); $("copy").textContent="已复制"; }
+  catch{ $("copy").textContent="复制失败"; }
+  setTimeout(()=>$("copy").textContent="复制最小修改版",1000);
+};
+</script>
+</body>
+</html>
